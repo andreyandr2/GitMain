@@ -1,24 +1,30 @@
 import openai
+import os
+from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
-# Ваш API ключ OpenAI
-OPENAI_API_KEY = "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"
-openai.api_key = OPENAI_API_KEY
+# Загружаем переменные окружения из .env файла
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-# Токен Telegram-бота
-TELEGRAM_TOKEN = "7858760812:AAHBQehxe8qqcO2IUDC_DN4sNAbNLxxJwRQ"
+# Устанавливаем ключ OpenAI
+openai.api_key = OPENAI_API_KEY
 
 # Функция для перевода текста через ChatGPT
 def translate_to_spanish(text):
-    prompt = f"Переведи следующий текст с русского на испанский: \"{text}\""
-    response = openai.completions.create(
-        model="gpt-3.5-turbo-instruct",
-        prompt=prompt,
+    messages = [
+        {"role": "system", "content": "Ты переводчик с русского на испанский."},
+        {"role": "user", "content": f"Переведи следующий текст с русского на испанский: \"{text}\""}
+    ]
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
         max_tokens=100,
         temperature=0.7
     )
-    translation = response.choices[0].text.strip()
+    translation = response.choices[0].message.content.strip()
     return translation
 
 # Обработчик сообщений
